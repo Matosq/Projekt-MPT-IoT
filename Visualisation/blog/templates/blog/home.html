@@ -1,0 +1,33 @@
+          <center> <h1>Home Page!</h1>
+             <h5>Join us today. Register and login :)</h5>
+
+                <h5>Monitor yourself everyday</h5>
+          <h4 style="margin-bottom: 60px">Latest data in our database</h4>
+          </center>
+
+
+{% extends "blog/base.html" %}
+{% block content %}
+    {% if user_db_id %}
+		<div>Your ID is {{user_db_id}}</div>
+    {% endif %}
+    {% if last_alcohol %}
+		<div style="height: 480px">{{last_alcohol|safe}}</div>
+    {% endif %}
+    {% if last_steps %}
+		<div style="height: 480px">{{last_steps|safe}}</div>
+    {% endif %}
+    {% if last_pulse %}
+		<div style="height: 480px">{{last_pulse|safe}}</div>
+    {% endif %}
+    {% if monthly_alcohol %}
+		<div style="height: 480px">{{monthly_alcohol|safe}}</div>
+    {% endif %}
+    {% if monthly_steps %}
+		<div style="height: 480px">{{monthly_steps|safe}}</div>
+    {% endif %}
+    {% if monthly_pulse %}
+		<div style="height: 480px">{{monthly_pulse|safe}}</div>
+    {% endif %}
+{% endblock content %}
+

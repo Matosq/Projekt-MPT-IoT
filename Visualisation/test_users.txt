@@ -1,0 +1,7 @@
+testowy_user1
+hasło: harifug1
+ID 7
+
+testowy_user2
+hasło: harifug2
+ID 8
