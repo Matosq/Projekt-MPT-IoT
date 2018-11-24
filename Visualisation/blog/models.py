@@ -38,6 +38,7 @@ class Activity(models.Model):
     timestamp = models.DateTimeField()
     steps = models.PositiveIntegerField(default=0)
     pulse = models.FloatField(default=0.0)
+    estimated_alcohol = models.FloatField(default=-1.0)
 
     def datetime(self):
         return self.timestamp.strftime("%Y.%m.%d %H:%M:%S")
@@ -56,5 +57,5 @@ class Drinking(models.Model):
         return self.timestamp.strftime("%Y.%m.%d %H:%M:%S")
 
     def __str__(self):
-        d = {'user': self.user, 'datetime': self.datetime(), 'alcohol': self.alcohol}
+        d = {'user': self.user, 'timestamp': self.datetime(), 'alcohol': self.alcohol}
         return str(d)
