@@ -1,0 +1,31 @@
+{% extends "blog/base.html" %}
+{% block content %}
+    <h3>Choose which charts you want to display:</h3>
+    <form method='post'>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type='submit' value='Display'>
+    </form>
+    
+    {% if user_db_id %}
+		<div>Your ID is {{user_db_id}}</div>
+    {% endif %}
+    {% if alcohol %}
+		<div style="height: 480px">{{alcohol|safe}}</div>
+    {% endif %}
+    {% if steps %}
+		<div style="height: 480px">{{steps|safe}}</div>
+    {% endif %}
+    {% if pulse %}
+		<div style="height: 480px">{{pulse|safe}}</div>
+    {% endif %}
+    {% if activity %}
+		<div style="height: 480px">{{activity|safe}}</div>
+    {% endif %}
+    {% if analysis2d %}
+		<div style="height: 480px">{{analysis2d|safe}}</div>
+    {% endif %}
+    {% if analysis3d %}
+		<div style="height: 480px">{{analysis3d|safe}}</div>
+    {% endif %}
+{% endblock content %}

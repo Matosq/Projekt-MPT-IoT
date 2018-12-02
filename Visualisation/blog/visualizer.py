@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 
 from .models import *
 from django.utils import timezone
-from django.db.models import Avg, Sum, F
+from django.db.models import Avg, Sum, Max, Min, F
 
 
 class Visualizer:
@@ -168,12 +168,27 @@ class Visualizer:
 
     def plot_monthly_pulse(self):
         #activities = self.get_last_data(Activity)
-        hist_x, hist_y = self.monthly_grid(model=Activity, name="pulse", func=Avg)
-        if hist_x is None or hist_y is None:
+        avg_x, avg_y = self.monthly_grid(model=Activity, name="pulse", func=Avg)
+        max_x, max_y = self.monthly_grid(model=Activity, name="pulse", func=Max)
+        min_x, min_y = self.monthly_grid(model=Activity, name="pulse", func=Min)
+        if avg_x is None or avg_y is None or max_x is None or max_y is None or min_x is None or min_y is None:
             return None
-        trace2 = go.Bar(x=hist_x,
-                        y=hist_y)
-        return self.plot(data=[trace2],
+        trace1 = go.Scatter(x=min_x,
+                        y=min_y,
+                        fill='tozeroy',
+                        fillcolor='blue',
+                        mode='none')
+        trace2 = go.Scatter(x=avg_x,
+                        y=avg_y,
+                        fill='tonexty',
+                        fillcolor='green',
+                        mode='none')
+        trace3 = go.Scatter(x=max_x,
+                        y=max_y,
+                        fill='tonexty',
+                        fillcolor='red',
+                        mode='none')
+        return self.plot(data=[trace1, trace2, trace3],
                          title="Pulse in last month",
                          xaxis={'title': 'time'},
                          yaxis={'title': 'pulse'},
@@ -181,13 +196,13 @@ class Visualizer:
 
     def plot_monthly_alcohol(self):
         #drinking = self.get_last_data(Drinking)
-        hist_x, hist_y = self.monthly_grid(model=Drinking, name="alcohol", func=Avg)
+        hist_x, hist_y = self.monthly_grid(model=Drinking, name="alcohol", func=Max)
         if hist_x is None or hist_y is None:
             return None
         trace2 = go.Bar(x=hist_x,
                         y=hist_y)
         return self.plot(data=[trace2],
-                         title="Alcohol in last month",
+                         title="Max alcohol in last month",
                          xaxis={'title': 'time'},
                          yaxis={'title': 'alcohol'},
                          filename="monthly_alcohol.html")

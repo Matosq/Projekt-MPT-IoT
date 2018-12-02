@@ -9,6 +9,7 @@ from .models import Activity
 from django.contrib.auth.decorators import login_required
 
 from .visualizer import *
+from .forms import *
 
 posts = [
     {
@@ -72,3 +73,46 @@ def analysis(request):
 
 def about(request):
     return render(request, 'blog/about.html', {'title': 'About'})
+    
+
+@login_required
+def chosen_chart_view(request):
+    current_user = User.objects.filter(username=request.user).first()
+
+    if current_user is None:
+        return render(request, 'blog/analysis.html', {})
+    v = Visualizer(user=current_user.id)
+
+    form = ChooseChartForm
+    keys_of_charts = ['alcohol', 'steps', 'pulse', 'activity', 'analysis2d', 'analysis3d']
+    context = {'form':form }
+    if request.method == 'POST':
+        form = ChooseChartForm(request.POST)
+        if form.is_valid():
+            charts = form.cleaned_data.get('charts')
+            common_charts = list(set(keys_of_charts).intersection(charts))
+            analysis = None
+            for element in common_charts:
+                if element == 'alcohol':
+                    context[element] = v.plot_alcohol()
+                elif element == 'steps':
+                    context[element] = v.plot_steps()
+                elif element == 'pulse':
+                    context[element] = v.plot_pulse()
+                elif element == 'activity':
+                    context[element] = v.plot_activity()
+                elif element == 'analysis2d':
+                    if analysis is None:
+                        analysis = v.plot_analysis()
+                    context[element] = analysis[0]
+                elif element == 'analysis3d':
+                    if analysis is None:
+                        analysis = v.plot_analysis()
+                    context[element] = analysis[1]
+
+            if charts:
+                return render(request, 'blog/render_charts.html', context)
+    #else:
+    #    form = ChooseChartForm
+
+    return render(request, 'blog/render_charts.html', {'form':form })
