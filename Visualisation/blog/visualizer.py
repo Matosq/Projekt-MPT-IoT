@@ -64,7 +64,7 @@ class Visualizer:
         hist_x = [None for _ in range(24)]
         hist_y = [None for _ in range(24)]
         for h in hist:
-            ind = (h["timestamp__hour"] - now.hour) % 24
+            ind = (h["timestamp__hour"] - now.hour - 1) % 24
             y = h["data_agg"]
             x = datetime.datetime(year=h["timestamp__date"].year, 
                                   month=h["timestamp__date"].month,
@@ -74,9 +74,9 @@ class Visualizer:
                                   tzinfo=now.tzinfo)
             hist_x[ind] = x
             hist_y[ind] = y
-        print("now", now.hour)
-        print("x", hist_x)
-        print("y", hist_y)
+        #print("now", now.hour)
+        #print("x", hist_x)
+        #print("y", hist_y)
         return data.order_by('timestamp'), hist_x, hist_y
 	
     def monthly_grid(self, model, name, func):    
