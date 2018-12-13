@@ -61,22 +61,23 @@ class Visualizer:
         if len(data) < self.min_daily_values:
             return None, None, None
         hist = data.values("timestamp__date", "timestamp__hour").annotate(data_agg=func(name))
-        hist_x = [None for _ in range(24)]
-        hist_y = [None for _ in range(24)]
-        for h in hist:
-            ind = (h["timestamp__hour"] - now.hour - 1) % 24
-            y = h["data_agg"]
-            x = datetime.datetime(year=h["timestamp__date"].year, 
-                                  month=h["timestamp__date"].month,
-                                  day=h["timestamp__date"].day,
-                                  hour=h["timestamp__hour"],
-                                  minute=30,
-                                  tzinfo=now.tzinfo)
-            hist_x[ind] = x
-            hist_y[ind] = y
-        #print("now", now.hour)
-        #print("x", hist_x)
-        #print("y", hist_y)
+        hist = hist.order_by("timestamp__date", "timestamp__hour")
+        hist_x = [datetime.datetime(year=h["timestamp__date"].year, 
+                                    month=h["timestamp__date"].month,
+                                    day=h["timestamp__date"].day,
+                                    hour=h["timestamp__hour"],
+                                    minute=30,
+                                    tzinfo=now.tzinfo) for h in hist]
+        hist_y = [h["data_agg"] for h in hist]
+        
+        one_hour_delta = datetime.timedelta(hours=1)
+        breaks = []
+        for i in range(1, len(hist_x)):
+            if hist_x[i] - hist_x[i-1] > one_hour_delta:
+                breaks.append(len(breaks) + i)
+        for br in breaks:
+            hist_x.insert(br, hist_x[br - 1] + one_hour_delta)
+            hist_y.insert(br, None)
         return data.order_by('timestamp'), hist_x, hist_y
 	
     def monthly_grid(self, model, name, func):    
@@ -86,15 +87,9 @@ class Visualizer:
         if len(data) < self.min_monthly_values:
             return None, None
         hist = data.values("timestamp__date").annotate(data_agg=func(name))
-        hist_x = [None for _ in range(31)]
-        hist_y = [None for _ in range(31)]
-        for h in hist:
-            h_datetime = datetime.datetime.combine(h["timestamp__date"], datetime.datetime.min.time(), now.tzinfo)
-            ind = (h_datetime - now).days % 31
-            y = h["data_agg"]
-            x = h["timestamp__date"]
-            hist_x[ind] = x
-            hist_y[ind] = y
+        hist = hist.order_by("timestamp__date")
+        hist_x = [h["timestamp__date"] for h in hist]
+        hist_y = [h["data_agg"] for h in hist]
         return hist_x, hist_y
 
     def plot_last_steps(self):
@@ -172,23 +167,30 @@ class Visualizer:
         max_x, max_y = self.monthly_grid(model=Activity, name="pulse", func=Max)
         min_x, min_y = self.monthly_grid(model=Activity, name="pulse", func=Min)
         if avg_x is None or avg_y is None or max_x is None or max_y is None or min_x is None or min_y is None:
-            return None
-        trace1 = go.Scatter(x=min_x,
+            return None #go.Scatter
+        trace1 = dict(x=min_x,
                         y=min_y,
                         fill='tozeroy',
                         fillcolor='blue',
-                        mode='none')
-        trace2 = go.Scatter(x=avg_x,
+                        mode='none',
+                        #stackgroup='pd',
+                        orientation='v'
+                        )
+        trace2 = dict(x=avg_x,
                         y=avg_y,
-                        fill='tonexty',
+                        fill='tozeroy', #tonexty
                         fillcolor='green',
-                        mode='none')
-        trace3 = go.Scatter(x=max_x,
+                        mode='none',
+                        #stackgroup='pd'
+                        )
+        trace3 = dict(x=max_x,
                         y=max_y,
-                        fill='tonexty',
+                        fill='tozeroy',
                         fillcolor='red',
-                        mode='none')
-        return self.plot(data=[trace1, trace2, trace3],
+                        mode='none',
+                        #stackgroup='pd'
+                        )
+        return self.plot(data=[trace3, trace2, trace1],
                          title="Pulse in last month",
                          xaxis={'title': 'time'},
                          yaxis={'title': 'pulse'},
