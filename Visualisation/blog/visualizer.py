@@ -172,7 +172,7 @@ class Visualizer:
         hover_x = [x.strftime("%Y-%m-%d") for x in min_x]
         stacked_min = np.array(min_y)
         stacked_avg = np.array(avg_y) - stacked_min
-        stacked_max = np.array(max_y) - stacked_avg
+        stacked_max = np.array(max_y) - stacked_avg - stacked_min
         trace1 = go.Bar(x=min_x,
                         y=stacked_min,
                         marker={"color": "blue"},
