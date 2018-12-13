@@ -45,8 +45,9 @@ class Visualizer:
             filter(user=self.user). \
             filter(timestamp__range=(prev, now)).all()
 
-    def plot(self, data, title, xaxis, yaxis, filename="temp.html", showlegend=False):
-        layout = go.Layout(title=title, xaxis=xaxis, yaxis=yaxis, showlegend=showlegend)
+    def plot(self, data, title=None, xaxis=None, yaxis=None, filename="temp.html", showlegend=False, layout=None):
+        if layout is None:
+            layout = go.Layout(title=title, xaxis=xaxis, yaxis=yaxis, showlegend=showlegend)
         figure = go.Figure(data=data, layout=layout)
         if self.auto_open:
             plotly.offline.plot(figure, auto_open=True, filename=filename)
@@ -168,32 +169,36 @@ class Visualizer:
         min_x, min_y = self.monthly_grid(model=Activity, name="pulse", func=Min)
         if avg_x is None or avg_y is None or max_x is None or max_y is None or min_x is None or min_y is None:
             return None #go.Scatter
-        trace1 = dict(x=min_x,
-                        y=min_y,
-                        fill='tozeroy',
-                        fillcolor='blue',
-                        mode='none',
-                        #stackgroup='pd',
-                        orientation='v'
-                        )
-        trace2 = dict(x=avg_x,
-                        y=avg_y,
-                        fill='tozeroy', #tonexty
-                        fillcolor='green',
-                        mode='none',
-                        #stackgroup='pd'
-                        )
-        trace3 = dict(x=max_x,
-                        y=max_y,
-                        fill='tozeroy',
-                        fillcolor='red',
-                        mode='none',
-                        #stackgroup='pd'
-                        )
-        return self.plot(data=[trace3, trace2, trace1],
-                         title="Pulse in last month",
-                         xaxis={'title': 'time'},
-                         yaxis={'title': 'pulse'},
+        hover_x = [x.strftime("%Y-%m-%d") for x in min_x]
+        stacked_min = np.array(min_y)
+        stacked_avg = np.array(avg_y) - stacked_min
+        stacked_max = np.array(max_y) - stacked_avg
+        trace1 = go.Bar(x=min_x,
+                        y=stacked_min,
+                        marker={"color": "blue"},
+                        text=list(zip(hover_x, min_y)),
+                        hoverinfo='text',
+                        name='min')
+        trace2 = go.Bar(x=avg_x,
+                        y=stacked_avg,
+                        marker={"color": "green"},
+                        text=list(zip(hover_x, avg_y)),
+                        hoverinfo='text',
+                        name='avg')
+        trace3 = go.Bar(x=max_x,
+                        y=stacked_max,
+                        marker={"color": "red"},
+                        text=list(zip(hover_x, max_y)),
+                        hoverinfo='text',
+                        name='max')
+                        
+        layout = go.Layout(title="Pulse in last month", 
+                           xaxis={'title': 'time'}, 
+                           yaxis={'title': 'pulse'}, 
+                           showlegend=True,
+                           barmode='stack')
+        return self.plot(data=[trace1, trace2, trace3],
+                         layout=layout,
                          filename="monthly_pulse.html")
 
     def plot_monthly_alcohol(self):
